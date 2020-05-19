@@ -2,6 +2,7 @@
 const canvas = document.getElementById("background");
 const ctx = canvas.getContext("2d");
 const squares = 20
+
     
 let width = canvas.clientWidth;
 let height = canvas.clientHeight;
@@ -13,6 +14,10 @@ for (let i = 0; i < squares; i++) {
         map[i].push(squares-j+i)
     }
 }
+
+const maximum = Math.max.apply(Math, map[squares-1])
+console.log(maximum)
+
 let squareWidth = width/squares
 let squareHeight = height/squares
 
@@ -27,20 +32,38 @@ window.addEventListener('fullscreenchange', () => {
 
 canvas.width = width
 canvas.height = height
-    
-
+console.log(map)
 draw()
 
-console.log(map)
+window.onload = async function() {
+    while(true) {
+    let iterator = 0
+    while (iterator < maximum) {
+        //becomes green + grey lines
+        this.draw()
+        // one number of cells become blue
+        this.pulse(iterator)
+        //pause
+        await sleep(20)
+
+        //full white
+        this.clear()
+        iterator++;
+    }
+}
+}
+
+
 
 function draw() {
-
+    
     for (let i = 0; i < squares; i++) {
+        //console.log(i)
         for (let j = 0; j < squares; j++) {
-            if (map[i][j] == 0) {
-                ctx.fillStyle = "green"
-                ctx.fillRect(i*squareWidth, j*squareHeight, squareWidth, squareHeight)
-            }
+       
+            ctx.fillStyle = "green"
+            ctx.fillRect(i*squareWidth, j*squareHeight, squareWidth, squareHeight)
+
             ctx.beginPath();
             ctx.strokeStyle = "grey"
             ctx.rect(i*squareWidth, j*squareHeight, squareWidth, squareHeight)
@@ -48,10 +71,30 @@ function draw() {
         }
         
     }
+   
 }
+
+function pulse(iterator) {
+    sleep(10)
+        
+        for (let i = 0; i < squares; i++) {
+            for (let j = 0; j < squares; j++) {
+         
+                if (map[i][j] == iterator) {
+                    ctx.fillStyle = "blue"
+                    ctx.fillRect(i*squareWidth, j*squareHeight, squareWidth, squareHeight)
+                }
+       
+            }
+        }
+    }
+
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+function clear() {
+    ctx.clearRect(0,0,width,height)
 }
 
 function sizeChange() {
