@@ -14,8 +14,12 @@ let map = []
 for (let i = 0; i < horizSquares; i++) {
     map.push([])
     for (let j = 0; j < vertSquares; j++) {
+        if (j == vertSquares - 1) {
+            map[i].push(2)
+        } else {
         map[i].push(0)
     }
+}
 }
 
 
@@ -44,9 +48,10 @@ window.onload = async function() {
 
         //becomes green + grey lines
         this.draw()
+        
 
         if (!blockInMotion) {
-        this.createBlock()
+        createBlock()
         }
 
        
@@ -71,6 +76,12 @@ function draw() {
         for (let j = 0; j < vertSquares; j++) {
             if(map[i][j] == 0) {
             ctx.fillStyle = "#aaaaaa"
+            ctx.fillRect(i*squareWidth, j*squareHeight, squareWidth, squareHeight)
+            }
+
+      
+            if(map[i][j] == 2) {
+            ctx.fillStyle = "#bbbbbb"
             ctx.fillRect(i*squareWidth, j*squareHeight, squareWidth, squareHeight)
             }
 
@@ -129,13 +140,16 @@ function createBlock() {
 }
 
 function fall() {
+    let collide = false
 
     let tempPosArray = []
 
     for (let i = 0; i < horizSquares; i++) {
         for (let j = 0; j < vertSquares; j++) {
          
+            //If map [i][j] = 1, then save it to an array to be analysed
             if (map[i][j] == 1) {
+                
                 
                 tempPosArray.push([i, j])
                 
@@ -149,15 +163,40 @@ function fall() {
     
     for (let i = 0; i < horizSquares; i++) {
         for (let j = 0; j < vertSquares; j++) {
-         
-            for (let x = 0; x < tempPosArray.length; x++) {
-                map[tempPosArray[x][0]][tempPosArray[x][1]] = 0
-                }
+
+
+           
+
+                
 
             for (let x = 0; x < tempPosArray.length; x++) {
-                map[tempPosArray[x][0]][tempPosArray[x][1] + 1] = 1
+                // console.log(tempPosArray)
+                //if part of the saved array is 2, then turn the saved array to 2s aswell
+                if (map[tempPosArray[x][0]][tempPosArray[x][1] + 1] == 2 || tempPosArray[x][1] + 1 == vertSquares - 1) {
+                    for (let y = 0; y < tempPosArray.length; y++) {
+                        map[tempPosArray[x][0]][tempPosArray[x][1]] == 2
+                        collide = true
+                    }
+                    break
+                } 
+            }
+
+
+            if (!collide) {
+
+                    //for each coord in saved array, set that coord's value to 0
+                    for (let z = 0; z < tempPosArray.length; z++) {
+                    map[tempPosArray[z][0]][tempPosArray[z][1]] = 0
                 }
+
+                    //for each coord in the saved array, - its y pos by 1
+                    for (let k = 0; k < tempPosArray.length; k++) {
+                        map[tempPosArray[k][0]][tempPosArray[k][1] + 1] = 1
+                    }
+
+                }
+            }
         }
     }
+    
 
-}
