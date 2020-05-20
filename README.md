@@ -1,2 +1,3 @@
 # BackgroundAnimation
-Animated background project
+Animated background project, tetris themed
+
