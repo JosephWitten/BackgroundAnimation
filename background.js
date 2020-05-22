@@ -132,7 +132,6 @@ function createBlock() {
     map[startPos][1] = 1
     map[startPos][2] = 1
     map[startPos][3] = 1
-    console.log(map)
     blockInMotion = true
     }
     
@@ -164,18 +163,14 @@ function fall() {
     for (let i = 0; i < horizSquares; i++) {
         for (let j = 0; j < vertSquares; j++) {
 
-
-           
-
-                
-
             for (let x = 0; x < tempPosArray.length; x++) {
-                // console.log(tempPosArray)
+
                 //if part of the saved array is 2, then turn the saved array to 2s aswell
                 if (map[tempPosArray[x][0]][tempPosArray[x][1] + 1] == 2 || tempPosArray[x][1] + 1 == vertSquares - 1) {
                     for (let y = 0; y < tempPosArray.length; y++) {
-                        map[tempPosArray[x][0]][tempPosArray[x][1]] == 2
+                        
                         collide = true
+                        
                     }
                     break
                 } 
@@ -194,6 +189,14 @@ function fall() {
                         map[tempPosArray[k][0]][tempPosArray[k][1] + 1] = 1
                     }
 
+                    
+                }
+                else {
+                    blockInMotion = false
+                    if(map[i][j] == 1) {
+                        map[i][j] = 2
+                        console.log(map)
+                    }
                 }
             }
         }
