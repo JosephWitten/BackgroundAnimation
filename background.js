@@ -3,7 +3,7 @@ const canvas = document.getElementById("background");
 const ctx = canvas.getContext("2d");
 const horizSquares = 10
 const vertSquares = 20
-const blockArray = ["longBlock", "lBlock", "cubeBlock", "tBlock", "zBlock"]
+const blockArray = ["longBlock", "angleBlock", "cubeBlock", "tBlock", "zBlock"]
 
 
     
@@ -18,10 +18,23 @@ for (let i = 0; i < horizSquares; i++) {
             map[i].push(2)
         } else {
         map[i].push(0)
+        }
     }
 }
+function getCleanMap() {
+    let cleanMap = []
+    for (let i = 0; i < horizSquares; i++) {
+        cleanMap.push([])
+        for (let j = 0; j < vertSquares; j++) {
+            if (j == vertSquares - 1) {
+                cleanMap[i].push(2)
+            } else {
+            cleanMap[i].push(0)
+            }
+        }
+    }
+    return cleanMap
 }
-
 
 let blockInMotion = false
 
@@ -40,20 +53,30 @@ window.addEventListener('fullscreenchange', () => {
 canvas.width = width
 canvas.height = height
 
+let ended = false
+
 draw()
+
+//---------------------------------------------------------------------------------------------------------------------------------------
 
 window.onload = async function() {
     while(true) {
+        ended = false
 
+        if (!blockInMotion) {
+            createBlock()
+        }
 
         //becomes green + grey lines
         this.draw()
         
-
-        if (!blockInMotion) {
-        createBlock()
+        this.checkForEnd()
+        if(ended) {
+            cleanMap = getCleanMap()
+            map = cleanMap
+            blockInMotion = false
+            
         }
-
        
         //pause
         await sleep(100)
@@ -67,12 +90,11 @@ window.onload = async function() {
     }
 }
 
-
+//---------------------------------------------------------------------------------------------------------------------------------------
 
 function draw() {
     
     for (let i = 0; i < horizSquares; i++) {
-        //console.log(i)
         for (let j = 0; j < vertSquares; j++) {
             if(map[i][j] == 0) {
             ctx.fillStyle = "#aaaaaa"
@@ -126,16 +148,67 @@ function randomBlock() {
 function createBlock() {
     
     let startPos = randomPos() 
-    let currentBlock = randomBlock()
-    if (currentBlock == "longBlock") {
-    map[startPos][0] =  1
-    map[startPos][1] = 1
-    map[startPos][2] = 1
-    map[startPos][3] = 1
-    blockInMotion = true
+    switch (randomBlock()) {
+    
+
+    case ("longBlock"):
+    
+        map[startPos][0] =  1
+        map[startPos][1] = 1
+        map[startPos][2] = 1
+        map[startPos][3] = 1
+        blockInMotion = true
+        break
+    
+
+    case ("tBlock"):
+        try {
+        map[startPos + 1][1] = 1
+        map[startPos][0] = 1
+        map[startPos][1] = 1
+        map[startPos][2] = 1
+        
+        blockInMotion = true
+        }
+        catch {
+            blockInMotion = false
+        }
+        break
+
+    case ("cubeBlock"):
+        try {
+        map[startPos + 1][0] = 1
+        map[startPos + 1][1] = 1
+        map[startPos][0] = 1
+        map[startPos][1] = 1
+        blockInMotion = true
+        }
+        catch {
+            blockInMotion = false
+        }
+        break
+    
+    
+
+    case ("angleBlock"):
+        
+        try {
+            map[startPos + 1][0] = 1
+            map[startPos][0] = 1
+            map[startPos][1] = 1
+            map[startPos][2] = 1
+            blockInMotion = true
+        }
+        catch {
+            
+            blockInMotion = false
+        }
+        break
+
+    default:
+        console.log("no cube selected")
+    
     }
-    
-    
 }
 
 function fall() {
@@ -148,16 +221,12 @@ function fall() {
          
             //If map [i][j] = 1, then save it to an array to be analysed
             if (map[i][j] == 1) {
-                
-                
-                tempPosArray.push([i, j])
-                
-
-
+                tempPosArray.push([i, j])   
             }
-           
         }
     }
+ 
+
 
     
     for (let i = 0; i < horizSquares; i++) {
@@ -167,14 +236,11 @@ function fall() {
 
                 //if part of the saved array is 2, then turn the saved array to 2s aswell
                 if (map[tempPosArray[x][0]][tempPosArray[x][1] + 1] == 2 || tempPosArray[x][1] + 1 == vertSquares - 1) {
-                    for (let y = 0; y < tempPosArray.length; y++) {
-                        
-                        collide = true
-                        
-                    }
+                    collide = true
                     break
                 } 
             }
+
 
 
             if (!collide) {
@@ -195,11 +261,28 @@ function fall() {
                     blockInMotion = false
                     if(map[i][j] == 1) {
                         map[i][j] = 2
-                        console.log(map)
+                        
                     }
                 }
             }
         }
     }
-    
 
+
+function checkForEnd() {
+    for (let i = 0; i < horizSquares; i++) {
+        if (map[i][0] == 2) {
+            temp = true
+            break
+        }
+        else {
+            temp = false
+        }
+    }
+    if (temp) {
+        ended = true
+    }
+    else {
+        ended = false
+    }
+}
