@@ -1,9 +1,23 @@
+//for refrence this is what the map looks like 
+// 0: (20) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+// 1: (20) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+// 2: (20) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+// 3: (20) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+// 4: (20) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+// 5: (20) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+// 6: (20) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 2]
+// 7: (20) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 2]
+// 8: (20) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+// 9: (20) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+
+
 //make sure html has correct onresize thingy in real doc
 const canvas = document.getElementById("background");
 const ctx = canvas.getContext("2d");
 const horizSquares = 10
 const vertSquares = 20
-const blockArray = ["longBlock", "angleBlock", "cubeBlock", "tBlock", "zBlock"]
+// const blockArray = ["longBlock", "angleBlock", "cubeBlock", "tBlock", "zBlock"]
+const blockArray = ["cubeBlock"]
 
 
     
@@ -60,6 +74,7 @@ draw()
 //---------------------------------------------------------------------------------------------------------------------------------------
 
 window.onload = async function() {
+    this.console.log(map)
     while(true) {
         ended = false
 
@@ -147,8 +162,9 @@ function randomBlock() {
 
 function createBlock() {
     
-    let startPos = randomPos() 
-    switch (randomBlock()) {
+    let startPos = randomPos()
+    let newBlock = randomBlock() 
+    switch (newBlock) {
     
 
     case ("longBlock"):
@@ -205,7 +221,22 @@ function createBlock() {
         }
         break
 
+    case ("zBlock"):
+        try {
+            map[startPos + 1][1] = 1
+            map[startPos + 1][2] = 1
+            map[startPos][0] = 1
+            map[startPos][1] = 1
+            blockInMotion = true
+      
+        }
+        catch {
+            blockInMotion = false
+        }
+        break
+
     default:
+        console.log(newBlock)
         console.log("no cube selected")
     
     }
@@ -213,7 +244,7 @@ function createBlock() {
 
 function fall() {
     let collide = false
-
+    let holeRowArray = []
     let tempPosArray = []
 
     for (let i = 0; i < horizSquares; i++) {
@@ -237,6 +268,8 @@ function fall() {
                 //if part of the saved array is 2, then turn the saved array to 2s aswell
                 if (map[tempPosArray[x][0]][tempPosArray[x][1] + 1] == 2 || tempPosArray[x][1] + 1 == vertSquares - 1) {
                     collide = true
+                
+                   
                     break
                 } 
             }
@@ -261,12 +294,32 @@ function fall() {
                     blockInMotion = false
                     if(map[i][j] == 1) {
                         map[i][j] = 2
-                        
+                    }
+                    
+                    for (let k = 0; k < tempPosArray.length; k++) {
+                        if (holeRowArray.includes(tempPosArray[k][0])) {
+
+                        } else {
+                            holeRowArray.push(tempPosArray[k][0])
+                        }
                     }
                 }
             }
+            
         }
+        if (collide) {
+            let overallFitness = 0
+            for (let i = 0; i < holeRowArray.length; i++) {
+            
+            holesCreated = checkForHoles(holeRowArray[i])
+            overallFitness = overallFitness + holesCreated
+            
+            
+        }
+        console.log(overallFitness)
+
     }
+}
 
 
 function checkForEnd() {
@@ -285,4 +338,20 @@ function checkForEnd() {
     else {
         ended = false
     }
+}
+
+function checkForHoles(row /*row in the console array not visual one*/) {
+    let containsTwo = false
+    let holesCreated = 0
+    for (let i = 0; i < vertSquares; i++) {
+        //if there is a block in the row, make true
+        if (map[row][i] == 2) {
+            containsTwo = true
+        } 
+        //if block above, count how many spaces below
+        if (map[row][i] == 0 && containsTwo) {
+            holesCreated = holesCreated + 1
+        }
+    }
+    return holesCreated
 }
