@@ -16,8 +16,7 @@ const canvas = document.getElementById("background");
 const ctx = canvas.getContext("2d");
 const horizSquares = 10
 const vertSquares = 20
-// const blockArray = ["longBlock", "angleBlock", "cubeBlock", "tBlock", "zBlock"]
-const blockArray = ["cubeBlock"]
+const blockArray = ["longBlock", "angleBlock", "cubeBlock", "tBlock", "zBlock"]
 
 
     
@@ -245,28 +244,26 @@ function createBlock() {
 function fall() {
     let collide = false
     let holeRowArray = []
-    let tempPosArray = []
+    let PosArray = []
 
     for (let i = 0; i < horizSquares; i++) {
         for (let j = 0; j < vertSquares; j++) {
          
             //If map [i][j] = 1, then save it to an array to be analysed
             if (map[i][j] == 1) {
-                tempPosArray.push([i, j])   
+                PosArray.push([i, j])   
             }
         }
     }
- 
-
 
     
     for (let i = 0; i < horizSquares; i++) {
         for (let j = 0; j < vertSquares; j++) {
 
-            for (let x = 0; x < tempPosArray.length; x++) {
+            for (let x = 0; x < PosArray.length; x++) {
 
                 //if part of the saved array is 2, then turn the saved array to 2s aswell
-                if (map[tempPosArray[x][0]][tempPosArray[x][1] + 1] == 2 || tempPosArray[x][1] + 1 == vertSquares - 1) {
+                if (map[PosArray[x][0]][PosArray[x][1] + 1] == 2 || PosArray[x][1] + 1 == vertSquares - 1) {
                     collide = true
                 
                    
@@ -279,13 +276,13 @@ function fall() {
             if (!collide) {
 
                     //for each coord in saved array, set that coord's value to 0
-                    for (let z = 0; z < tempPosArray.length; z++) {
-                    map[tempPosArray[z][0]][tempPosArray[z][1]] = 0
+                    for (let z = 0; z < PosArray.length; z++) {
+                    map[PosArray[z][0]][PosArray[z][1]] = 0
                 }
 
                     //for each coord in the saved array, - its y pos by 1
-                    for (let k = 0; k < tempPosArray.length; k++) {
-                        map[tempPosArray[k][0]][tempPosArray[k][1] + 1] = 1
+                    for (let k = 0; k < PosArray.length; k++) {
+                        map[PosArray[k][0]][PosArray[k][1] + 1] = 1
                     }
 
                     
@@ -296,11 +293,11 @@ function fall() {
                         map[i][j] = 2
                     }
                     
-                    for (let k = 0; k < tempPosArray.length; k++) {
-                        if (holeRowArray.includes(tempPosArray[k][0])) {
+                    for (let k = 0; k < PosArray.length; k++) {
+                        if (holeRowArray.includes(PosArray[k][0])) {
 
                         } else {
-                            holeRowArray.push(tempPosArray[k][0])
+                            holeRowArray.push(PosArray[k][0])
                         }
                     }
                 }
@@ -317,7 +314,6 @@ function fall() {
             
         }
         console.log(overallFitness)
-
     }
 }
 
@@ -355,3 +351,34 @@ function checkForHoles(row /*row in the console array not visual one*/) {
     }
     return holesCreated
 }
+
+function shiftLeft(PosArray) {
+    console.log(PosArray)
+    PosArrayBackup = PosArray
+    tempPosArray = []
+
+    for (let i = 0; i < PosArray.length; i++) {
+        let temp = []
+        temp.push(PosArray[i][0] - 1)
+        temp.push(PosArray[i][1])
+        tempPosArray.push(temp)
+        }
+
+        for (j = 0; j < tempPosArray.length; j ++) {
+            if (tempPosArray[j][0] < 0) {
+                
+                return PosArrayBackup
+                
+            } else {
+                for (let m = 0; m < horizSquares; m++) {
+                    for (let a = 0; a < vertSquares; a++) {
+                        if (map[m][a] == 1) {
+                            map[m][a] = 0
+                        }
+                    }
+                }
+                return tempPosArray
+            }
+        }
+    }
+
