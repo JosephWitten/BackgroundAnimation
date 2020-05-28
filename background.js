@@ -18,7 +18,6 @@ const horizSquares = 10
 const vertSquares = 20
 const blockArray = ["longBlock", "angleBlock", "cubeBlock", "tBlock", "zBlock"]
 
-
     
 let width = canvas.clientWidth;
 let height = canvas.clientHeight;
@@ -256,6 +255,7 @@ function fall() {
         }
     }
 
+
     
     for (let i = 0; i < horizSquares; i++) {
         for (let j = 0; j < vertSquares; j++) {
@@ -271,7 +271,7 @@ function fall() {
                 } 
             }
 
-
+            PosArray = shiftRight(PosArray)
 
             if (!collide) {
 
@@ -382,3 +382,34 @@ function shiftLeft(PosArray) {
         }
     }
 
+function shiftRight(PosArray) {
+    let bad = false
+    PosArrayBackup = PosArray
+    tempPosArray = []
+
+    for (let i = 0; i < PosArray.length; i++) {
+        let temp = []
+        temp.push(PosArray[i][0] + 1)
+        temp.push(PosArray[i][1])
+        tempPosArray.push(temp)
+        }
+
+        for (j = 0; j < tempPosArray.length; j ++) {
+            if (tempPosArray[j][0] >= horizSquares) {
+                bad = true
+                } 
+            }
+
+            if (bad) {
+                return PosArrayBackup
+            } else {
+                for (let m = 0; m < horizSquares; m++) {
+                    for (let a = 0; a < vertSquares; a++) {
+                        if (map[m][a] == 1) {
+                            map[m][a] = 0
+                        }
+                    }
+                }
+                return tempPosArray
+        }
+    }
