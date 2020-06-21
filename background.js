@@ -78,6 +78,7 @@ window.onload = async function() {
 
         if (!blockInMotion) {
             createBlock()
+            findBestPos()
         }
 
         //becomes green + grey lines
@@ -130,7 +131,47 @@ function draw() {
    
 }
 
+function findBestPos() {
+    moveTo()
+}
 
+function moveTo(column) {
+    let tempMoveArray = []
+    for (let i = 0; i < horizSquares; i++) {
+        for (let j = 0; j < vertSquares; j++) {
+            if (map[i][j] == 1) {
+                let temp = []
+                temp.push(i)
+                temp.push(j)
+                tempMoveArray.push(temp)    
+            }
+        }
+    }
+
+    let tempMoveArrayCopy = tempMoveArray
+
+    for (let i = 0; i < horizSquares; i++) {
+        try {
+            tempMoveArray = shiftLeft(tempMoveArray)
+        } catch {
+            console.log("broke")
+            tempMoveArray = tempMoveArrayCopy
+            break
+        }
+    }
+
+    for (let i = 0; i < horizSquares; i++) {
+        for (let j = 0; j < vertSquares; j++) {
+            if (map[i][j] == 1) {
+                map[i][j] = 0
+            }
+        }
+    } 
+
+    for (let i = 0; i < tempMoveArray.length; i++) {
+        map[tempMoveArray[i][0]][tempMoveArray[i][1]] = 1
+    }
+}
 
 
 function sleep(ms) {
@@ -181,7 +222,6 @@ function createBlock() {
         map[startPos][0] = 1
         map[startPos][1] = 1
         map[startPos][2] = 1
-        
         blockInMotion = true
         }
         catch {
@@ -271,7 +311,8 @@ function fall() {
                 } 
             }
 
-            PosArray = shiftRight(PosArray)
+            // PosArray = shiftRight(PosArray)
+            // PosArray = shiftLeft(PosArray)
 
             if (!collide) {
 
@@ -352,8 +393,9 @@ function checkForHoles(row /*row in the console array not visual one*/) {
     return holesCreated
 }
 
+//------------------------SHIFT FUNCTIONS -----------------------------------------------------------------------
+
 function shiftLeft(PosArray) {
-    console.log(PosArray)
     PosArrayBackup = PosArray
     tempPosArray = []
 
@@ -413,3 +455,5 @@ function shiftRight(PosArray) {
                 return tempPosArray
         }
     }
+
+//------------------------SHIFT FUNCTIONS END -----------------------------------------------------------------------
