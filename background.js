@@ -77,7 +77,8 @@ window.onload = async function() {
         ended = false
 
         if (!blockInMotion) {
-            createBlock()
+            blockPosArray = createBlock()
+            console.log(blockPosArray)
             findBestPos()
         }
 
@@ -132,7 +133,41 @@ function draw() {
 }
 
 function findBestPos() {
-    moveTo()
+    
+    for (let i = 0; i < horizSquares; i++) {
+        moveTo(i)
+        blockPosArray = sink(blockPosArray)
+        console.log(blockPosArray)
+    }
+}
+
+function sink(blockPosArray) {
+    let blockPosArrayCopy = []
+    let collide = false
+    while (!collide) {
+        try {
+            blockPosArrayCopy = blockPosArray
+            // EDITORS NOTE: LEFT OF HERE AND THE POS ARRAY ISNT BEING RECORDED IN THE MAKEBLOCK FUNC <--------------
+            console.log(blockPosArray)
+            //check if one of the positions is 2
+            for (let i = 0; i < blockPosArray; i++) {
+                if (map[blockPosArray[i][0]][blockPosArray[i][1]] == 2) {
+                    collide = true
+                }    
+            }
+            //if there has been no collision decrease it by one
+            if (!collide) {
+                for (let i = 0; i < blockPosArray; i++) {
+                    blockPosArray[i][0] = blockPosArray[i][0] - 1
+                } 
+            }
+        } catch {
+
+        }
+    }
+    //when there has been a collision take the last good one
+    blockPosArray = blockPosArrayCopy
+    return blockPosArray
 }
 
 function moveTo(column) {
@@ -157,6 +192,16 @@ function moveTo(column) {
             console.log("broke")
             tempMoveArray = tempMoveArrayCopy
             break
+        }
+    }
+
+    for (let i = 0; i < column; i++) {
+        try {
+            tempMoveArray = shiftRight(tempMoveArray)
+        }
+        catch {
+            console.log("broke on rightshift")
+            tempMoveArray = tempMoveArrayCopy
         }
     }
 
@@ -278,6 +323,18 @@ function createBlock() {
         console.log("no cube selected")
     
     }
+    let blockPosArray = []
+    for (let i = 0; i < horizSquares; i ++) {
+        for (let j = 0; j < vertSquares; j++) {
+            if (map[i][j] == 1) {
+                temp = []
+                temp.push(i)
+                temp.push(j)
+                blockPosArray.push(temp)
+            }
+        }
+    }
+    return blockPosArray
 }
 
 function fall() {
