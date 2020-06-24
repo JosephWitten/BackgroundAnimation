@@ -78,8 +78,9 @@ window.onload = async function() {
 
         if (!blockInMotion) {
             blockPosArray = createBlock()
-            console.log(blockPosArray)
-            findBestPos()
+            if (blockPosArray !== undefined) {
+                findBestPos()
+            }
         }
 
         //becomes green + grey lines
@@ -135,9 +136,12 @@ function draw() {
 function findBestPos() {
     
     for (let i = 0; i < horizSquares; i++) {
-        moveTo(i)
+        blockPosArray = moveTo(i)
         blockPosArray = sink(blockPosArray)
+        console.log(i)
         console.log(blockPosArray)
+
+        //let fitness = checkForHoles(blockPosArray[])
     }
 }
 
@@ -145,25 +149,21 @@ function sink(blockPosArray) {
     let blockPosArrayCopy = []
     let collide = false
     while (!collide) {
-        try {
             blockPosArrayCopy = blockPosArray
-            // EDITORS NOTE: LEFT OF HERE AND THE POS ARRAY ISNT BEING RECORDED IN THE MAKEBLOCK FUNC <--------------
-            console.log(blockPosArray)
             //check if one of the positions is 2
-            for (let i = 0; i < blockPosArray; i++) {
+            for (let i = 0; i < blockPosArray.length; i++) {
                 if (map[blockPosArray[i][0]][blockPosArray[i][1]] == 2) {
                     collide = true
                 }    
             }
+
             //if there has been no collision decrease it by one
             if (!collide) {
-                for (let i = 0; i < blockPosArray; i++) {
-                    blockPosArray[i][0] = blockPosArray[i][0] - 1
+
+                for (let i = 0; i < blockPosArray.length; i++) {
+                    blockPosArray[i][1] = blockPosArray[i][1] + 1
                 } 
             }
-        } catch {
-
-        }
     }
     //when there has been a collision take the last good one
     blockPosArray = blockPosArrayCopy
@@ -216,6 +216,7 @@ function moveTo(column) {
     for (let i = 0; i < tempMoveArray.length; i++) {
         map[tempMoveArray[i][0]][tempMoveArray[i][1]] = 1
     }
+    return tempMoveArray
 }
 
 
@@ -323,18 +324,20 @@ function createBlock() {
         console.log("no cube selected")
     
     }
-    let blockPosArray = []
-    for (let i = 0; i < horizSquares; i ++) {
-        for (let j = 0; j < vertSquares; j++) {
-            if (map[i][j] == 1) {
-                temp = []
-                temp.push(i)
-                temp.push(j)
-                blockPosArray.push(temp)
+    if (blockInMotion) {
+        let blockPosArray = []
+        for (let i = 0; i < horizSquares; i ++) {
+            for (let j = 0; j < vertSquares; j++) {
+                if (map[i][j] == 1) {
+                    temp = []
+                    temp.push(i)
+                    temp.push(j)
+                    blockPosArray.push(temp)
+                }
             }
         }
+        return blockPosArray
     }
-    return blockPosArray
 }
 
 function fall() {
@@ -411,7 +414,6 @@ function fall() {
             
             
         }
-        console.log(overallFitness)
     }
 }
 
