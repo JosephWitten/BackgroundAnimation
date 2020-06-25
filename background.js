@@ -134,16 +134,17 @@ function draw() {
 }
 
 function findBestPos() {
-    
+    let fitnessArray = []
     for (let i = 0; i < horizSquares; i++) {
         blockPosArray = moveTo(i)
         blockPosArray = sink(blockPosArray)
-        console.log(i)
-        console.log(blockPosArray)
-
+        fitness = getFitness(blockPosArray)
+        console.log(fitness)
+        fitnessArray.push(fitness)
         //let fitness = checkForHoles(blockPosArray[])
     }
 }
+
 
 function sink(blockPosArray) {
     let blockPosArrayCopy = []
@@ -342,7 +343,6 @@ function createBlock() {
 
 function fall() {
     let collide = false
-    let holeRowArray = []
     let PosArray = []
 
     for (let i = 0; i < horizSquares; i++) {
@@ -393,29 +393,10 @@ function fall() {
                     if(map[i][j] == 1) {
                         map[i][j] = 2
                     }
-                    
-                    for (let k = 0; k < PosArray.length; k++) {
-                        if (holeRowArray.includes(PosArray[k][0])) {
-
-                        } else {
-                            holeRowArray.push(PosArray[k][0])
-                        }
-                    }
                 }
             }
-            
-        }
-        if (collide) {
-            let overallFitness = 0
-            for (let i = 0; i < holeRowArray.length; i++) {
-            
-            holesCreated = checkForHoles(holeRowArray[i])
-            overallFitness = overallFitness + holesCreated
-            
-            
         }
     }
-}
 
 
 function checkForEnd() {
@@ -433,6 +414,23 @@ function checkForEnd() {
     }
     else {
         ended = false
+    }
+}
+
+function getFitness(blockPosArray) {
+    let holeRowArray = []
+    for (let j = 0; j < blockPosArray.length; j++) {
+        if (!holeRowArray.includes(blockPosArray[j][0])) {
+            holeRowArray.push(blockPosArray[j][0])
+        }
+    }
+
+    let overallFitness = 0
+    for (let i = 0; i < holeRowArray.length; i++) {        
+        holesCreated = checkForHoles(holeRowArray[i])
+        overallFitness = overallFitness + holesCreated
+
+    return overallFitness
     }
 }
 
@@ -514,5 +512,6 @@ function shiftRight(PosArray) {
                 return tempPosArray
         }
     }
+    
 
 //------------------------SHIFT FUNCTIONS END -----------------------------------------------------------------------
