@@ -10,6 +10,9 @@
 // 8: (20) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
 // 9: (20) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
 
+//Notes:
+// current problem is that no matter when the block falls, the position in fitness doesnt change
+
 
 //make sure html has correct onresize thingy in real doc
 const canvas = document.getElementById("background");
@@ -78,8 +81,11 @@ window.onload = async function() {
 
         if (!blockInMotion) {
             blockPosArray = createBlock()
+            blockPosArrayCopy = blockPosArray
             if (blockPosArray !== undefined) {
-                findBestPos()
+                bestPos = findBestPos(blockPosArrayCopy)
+                moveTo(5)
+                
             }
         }
 
@@ -135,16 +141,40 @@ function draw() {
 
 function findBestPos() {
     let fitnessArray = []
+    let copy = fitnessArray
     for (let i = 0; i < horizSquares; i++) {
         blockPosArray = moveTo(i)
-        blockPosArray = sink(blockPosArray)
-        fitness = getFitness(blockPosArray)
-        console.log(fitness)
+        sink(blockPosArray)
+            
+        fitness = checkForHoles(i)
         fitnessArray.push(fitness)
-        //let fitness = checkForHoles(blockPosArray[])
+
+        console.log(`fitness BEFORE ${fitnessArray}`)
+        copy = copy.sort(function(a, b){return a-b})
+        best = copy[0]
+        bestPos = fitnessArray.indexOf(best)
     }
+    bestPos = horizSquares - bestPos
+    console.log(` best position is ${bestPos}`)
+    return bestPos
 }
 
+function reset(blockPosArrayCopy) {
+    for (let i = 0; i < horizSquares; i++) {
+        for (let j = 0; j < vertSquares - 1; j++) {
+            if (map[i][j] == 1 || map[i][j] == 3) {
+                map[i][j] == 0
+            }
+        }
+    }
+    for (let i = 0; i < horizSquares; i++) {
+        for (let j = 0; j < vertSquares; j++) {
+            for (let k = 0; k < blockPosArrayCopy.length; k++) {
+                map[blockPosArrayCopy[k][0]][blockPosArrayCopy[k][1]] == 1
+            }
+        }
+    }
+}
 
 function sink(blockPosArray) {
     let blockPosArrayCopy = []
@@ -168,6 +198,10 @@ function sink(blockPosArray) {
     }
     //when there has been a collision take the last good one
     blockPosArray = blockPosArrayCopy
+    for (let i = 0; i < blockPosArray; i++) {
+        map[blockPosArray[i][0]][blockPosArray[i][1]] = 3
+    }
+    reset(blockPosArray)
     return blockPosArray
 }
 
@@ -188,7 +222,7 @@ function moveTo(column) {
 
     for (let i = 0; i < horizSquares; i++) {
         try {
-            tempMoveArray = shiftLeft(tempMoveArray)
+            tempMoveArray = shiftRight(tempMoveArray)
         } catch {
             console.log("broke")
             tempMoveArray = tempMoveArrayCopy
@@ -198,10 +232,10 @@ function moveTo(column) {
 
     for (let i = 0; i < column; i++) {
         try {
-            tempMoveArray = shiftRight(tempMoveArray)
+            tempMoveArray = shiftLeft(tempMoveArray)
         }
         catch {
-            console.log("broke on rightshift")
+            console.log("broke on Leftshift")
             tempMoveArray = tempMoveArrayCopy
         }
     }
@@ -417,36 +451,25 @@ function checkForEnd() {
     }
 }
 
-function getFitness(blockPosArray) {
-    let holeRowArray = []
-    for (let j = 0; j < blockPosArray.length; j++) {
-        if (!holeRowArray.includes(blockPosArray[j][0])) {
-            holeRowArray.push(blockPosArray[j][0])
-        }
-    }
-
-    let overallFitness = 0
-    for (let i = 0; i < holeRowArray.length; i++) {        
-        holesCreated = checkForHoles(holeRowArray[i])
-        overallFitness = overallFitness + holesCreated
-
-    return overallFitness
-    }
-}
 
 function checkForHoles(row /*row in the console array not visual one*/) {
     let containsTwo = false
+    let containsThree = false
     let holesCreated = 0
     for (let i = 0; i < vertSquares; i++) {
         //if there is a block in the row, make true
         if (map[row][i] == 2) {
             containsTwo = true
         } 
+        if (map[row][i] == 3) {
+            containsThree = true
+        }
         //if block above, count how many spaces below
-        if (map[row][i] == 0 && containsTwo) {
+        if (map[row][i] == 0 && (containsTwo || containsThree )) {
             holesCreated = holesCreated + 1
         }
     }
+    
     return holesCreated
 }
 
