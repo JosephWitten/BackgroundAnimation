@@ -20,8 +20,7 @@
 // 18: (10) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 // 19: (10) [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
-// TO DO:
-
+//current problem is something to do with the first column and fitness
 
 //make sure html has correct onresize thingy in real doc
 const canvas = document.getElementById("background");
@@ -66,6 +65,7 @@ canvas.height = height
 
 let ended = false
 let collision = false
+let timeInterval = 20
 
 draw()
 
@@ -73,43 +73,95 @@ draw()
 
 window.onload = async function() {
     this.console.log(map)
-    let yum = 0
-    while(yum < 10) {
-     
+    while(true) {
+        let block = randomBlock()
+        let fitnessArray = []
+
         if (!blockInMotion) {
             for (let i = 0; i < horizSquares; i++) {
-                createBlock(i)
-                while (!collision) {
-                    fallByOne()
-                    if (collision) {
-                        countHoles()
-                    }
-                    this.draw()
-                    await sleep(50)
-                    this.clear()
+                badBlock = createBlock(i, block)
+                if (badBlock) {
+                    blockInMotion = true
+                    break
                 }
-       
+                
+                while (!collision) {
+                    this.draw()
+                    await sleep(timeInterval)
+                    this.clear()
+                    fallByOne()
+                }
+                holesCreated = countHoles()
+                sleep(timeInterval)
+                fitnessArray.push(holesCreated)
+                clean()
+                blockInMotion = false
+                collision = false
+            }
+            console.log(fitnessArray)
+            console.log(findMinIndex(fitnessArray))
+        }
+        
+        let bestPos = findMinIndex(fitnessArray)
+
+        createBlock(bestPos, block)
+        
+        while (!collision) {
+            this.draw()
+            await sleep(timeInterval)
+            this.clear()
+            fallByOne()
+            if (collision) {
+                freeze()
+                blockInMotion = false
             }
         }
-
-
-        // //becomes green + grey lines
-        // this.draw()
         
        
-        // //pause
-        // await sleep(100)
-
-        // //full white
-        // this.clear()
-
-        this.draw()
-        //break
-        yum += 1
     }
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------
+
+function countHoles() {
+    hasCubeArray = []
+    //finds blocks in each column
+    for (let i = vertSquares - 2; i > 0; i--) {
+        for (let j = 0; j < horizSquares; j++) {
+            if (map[i][j] == 1 && !hasCubeArray.includes(j)) {
+                hasCubeArray.push(j)
+            }
+        }
+    }
+    
+    let hasHitOne = false
+    let hasHitZero = false
+    let holes = 0
+    let tempHoles = 0
+    for (let k = 0; k < hasCubeArray.length; k++) {
+        for (let i = 0; i < vertSquares; i++) {
+            if (map[i][hasCubeArray[k]] == 1) {
+                hasHitOne = true
+                tempHoles = 0
+            }
+            if (map[i][hasCubeArray[k]] == 0 && hasHitOne) {
+                hasHitZero = true            
+                tempHoles += 1
+            }
+            if(map[i][hasCubeArray[k]] == 1 && hasHitZero) {
+                tempHoles = 0
+                hasHitZero = false
+            }
+            if (map[i][hasCubeArray[k]] == 2) {
+                holes += tempHoles
+                tempHoles = 0
+                hasHitOne = false
+                hasHitZero = false
+            }
+        }
+    }
+    return holes
+}
 
 function fallByOne() {
     PosArray = []
@@ -124,12 +176,6 @@ function fallByOne() {
             }
         } 
     }
-    //clean map
-    if (!collision) {
-        for (let k = 0; k < PosArray.length; k++) {
-                map[PosArray[k][0]][PosArray[k][1]] = 0
-            }
-    }
 
     //check for collisons
     for (let i = 0; i < vertSquares; i++) {
@@ -142,6 +188,12 @@ function fallByOne() {
             }
         }
     }
+
+    //clean map
+    if (!collision) {
+        clean()
+    }
+
     if (!collision) {
         //increment
         for (let k = 0; k < PosArray.length; k ++) {
@@ -155,6 +207,17 @@ function fallByOne() {
         }
     }
 }
+
+function clean() {
+    for (let i = 0; i < vertSquares; i++) {
+        for (let j = 0; j <horizSquares; j++) {
+            if (map[i][j] == 1) {
+                map[i][j] = 0
+            }
+        }
+    }
+}
+
 
 function draw() {
     
@@ -180,55 +243,28 @@ function draw() {
    
 }
 
+function findMinIndex(fitnessArray) {
+    let min = fitnessArray[0];
+    let minIndex = 0;
 
+    for (let i = 1; i < fitnessArray.length; i++) {
+        if (fitnessArray[i] < min) {
+            minIndex = i;
+            min = fitnessArray[i];
+        }
+    }
 
-function moveTo(column) {
-    let tempMoveArray = []
-    for (let i = 0; i < horizSquares; i++) {
-        for (let j = 0; j < vertSquares; j++) {
+    return minIndex;
+}
+
+function freeze() {
+    for (let i = 0; i < vertSquares; i++) {
+        for (let j = 0; j < horizSquares; j++) {
             if (map[i][j] == 1) {
-                let temp = []
-                temp.push(i)
-                temp.push(j)
-                tempMoveArray.push(temp)    
+                map[i][j] = 2
             }
         }
     }
-
-    let tempMoveArrayCopy = tempMoveArray
-
-    for (let i = 0; i < horizSquares; i++) {
-        try {
-            tempMoveArray = shiftRight(tempMoveArray)
-        } catch {
-            console.log("broke")
-            tempMoveArray = tempMoveArrayCopy
-            break
-        }
-    }
-
-    for (let i = 0; i < column; i++) {
-        try {
-            tempMoveArray = shiftLeft(tempMoveArray)
-        }
-        catch {
-            console.log("broke on Leftshift")
-            tempMoveArray = tempMoveArrayCopy
-        }
-    }
-
-    for (let i = 0; i < horizSquares; i++) {
-        for (let j = 0; j < vertSquares; j++) {
-            if (map[i][j] == 1) {
-                map[i][j] = 0
-            }
-        }
-    } 
-
-    for (let i = 0; i < tempMoveArray.length; i++) {
-        map[tempMoveArray[i][0]][tempMoveArray[i][1]] = 1
-    }
-    return tempMoveArray
 }
 
 
@@ -255,10 +291,10 @@ function randomBlock() {
     return blockArray[Math.floor(Math.random()*blockArray.length)];
 }
 
-function createBlock(givenStartPos) {
+function createBlock(givenStartPos, givenBlock) {
     
     let startPos = givenStartPos
-    let newBlock = randomBlock() 
+    let newBlock = givenBlock
     switch (newBlock) {
     
 
@@ -273,59 +309,56 @@ function createBlock(givenStartPos) {
     
 
     case ("tBlock"):
-        try {
-        map[1][startPos + 1] = 1
-        map[0][startPos] = 1
-        map[1][startPos] = 1
-        map[2][startPos] = 1
-        blockInMotion = true
-        }
-        catch {
+        if ((startPos + 1) >= horizSquares) {
             blockInMotion = false
+            break
+        } else {
+            map[1][startPos + 1] = 1
+            map[0][startPos] = 1
+            map[1][startPos] = 1
+            map[2][startPos] = 1
+            blockInMotion = true
         }
         break
 
     case ("cubeBlock"):
-        try {
-        map[0][startPos + 1] = 1
-        map[1][startPos + 1] = 1
-        map[0][startPos] = 1
-        map[1][startPos] = 1
-        blockInMotion = true
-        }
-        catch {
+        if ((startPos + 1) >= horizSquares) {
             blockInMotion = false
+            break
+        } else {
+            map[0][startPos + 1] = 1
+            map[1][startPos + 1] = 1
+            map[0][startPos] = 1
+            map[1][startPos] = 1
+            blockInMotion = true
         }
         break
     
     
 
     case ("angleBlock"):
-        
-        try {
+        if((startPos + 1) >= horizSquares) {
+            blockInMotion = false
+            break
+        } else {
             map[0][startPos + 1] = 1
             map[0][startPos] = 1
             map[1][startPos] = 1
             map[2][startPos] = 1
             blockInMotion = true
         }
-        catch {
-            
-            blockInMotion = false
-        }
         break
 
     case ("zBlock"):
-        try {
+        if ((startPos + 1) >= horizSquares) {
+            blockInMotion = false
+            break
+        } else {
             map[1][startPos + 1] = 1
             map[2][startPos + 1] = 1
             map[0][startPos] = 1
             map[1][startPos] = 1
             blockInMotion = true
-      
-        }
-        catch {
-            blockInMotion = false
         }
         break
 
@@ -334,21 +367,11 @@ function createBlock(givenStartPos) {
         console.log("no cube selected")
     
     }
-    if (blockInMotion) {
-        let blockPosArray = []
-        for (let i = 0; i < vertSquares; i ++) {
-            for (let j = 0; j < horizSquares; j++) {
-                if (map[i][j] == 1) {
-                    temp = []
-                    temp.push(i)
-                    temp.push(j)
-                    blockPosArray.push(temp)
-                }
-            }
-        }
-        return blockPosArray
+    if (!blockInMotion) {
+        return true
     }
 }
+
 
 
 
@@ -370,69 +393,3 @@ function checkForEnd() {
     }
 }
 
-
-//------------------------SHIFT FUNCTIONS -----------------------------------------------------------------------
-
-function shiftLeft(PosArray) {
-    PosArrayBackup = PosArray
-    tempPosArray = []
-
-    for (let i = 0; i < PosArray.length; i++) {
-        let temp = []
-        temp.push(PosArray[i][0] - 1)
-        temp.push(PosArray[i][1])
-        tempPosArray.push(temp)
-        }
-
-        for (j = 0; j < tempPosArray.length; j ++) {
-            if (tempPosArray[j][0] < 0) {
-                
-                return PosArrayBackup
-                
-            } else {
-                for (let m = 0; m < horizSquares; m++) {
-                    for (let a = 0; a < vertSquares; a++) {
-                        if (map[m][a] == 1) {
-                            map[m][a] = 0
-                        }
-                    }
-                }
-                return tempPosArray
-            }
-        }
-    }
-
-function shiftRight(PosArray) {
-    let bad = false
-    PosArrayBackup = PosArray
-    tempPosArray = []
-
-    for (let i = 0; i < PosArray.length; i++) {
-        let temp = []
-        temp.push(PosArray[i][0] + 1)
-        temp.push(PosArray[i][1])
-        tempPosArray.push(temp)
-        }
-
-        for (j = 0; j < tempPosArray.length; j ++) {
-            if (tempPosArray[j][0] >= horizSquares) {
-                bad = true
-                } 
-            }
-
-            if (bad) {
-                return PosArrayBackup
-            } else {
-                for (let m = 0; m < horizSquares; m++) {
-                    for (let a = 0; a < vertSquares; a++) {
-                        if (map[m][a] == 1) {
-                            map[m][a] = 0
-                        }
-                    }
-                }
-                return tempPosArray
-        }
-    }
-    
-
-//------------------------SHIFT FUNCTIONS END -----------------------------------------------------------------------
