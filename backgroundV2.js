@@ -82,6 +82,7 @@ window.onload = async function() {
                 badBlock = createBlock(i, block)
                 if (badBlock) {
                     blockInMotion = true
+                    i = 0;
                     break
                 }
                 
@@ -98,8 +99,6 @@ window.onload = async function() {
                 blockInMotion = false
                 collision = false
             }
-            console.log(fitnessArray)
-            console.log(findMinIndex(fitnessArray))
         }
         
         let bestPos = findMinIndex(fitnessArray)
@@ -116,8 +115,8 @@ window.onload = async function() {
                 blockInMotion = false
             }
         }
-        
-       
+        checkForRow()
+
     }
 }
 
@@ -151,6 +150,11 @@ function countHoles() {
             if(map[i][hasCubeArray[k]] == 1 && hasHitZero) {
                 tempHoles = 0
                 hasHitZero = false
+
+                tempHoles = 0
+                hasHitOne = false
+                hasHitZero = false
+                break
             }
             if (map[i][hasCubeArray[k]] == 2) {
                 holes += tempHoles
@@ -218,6 +222,24 @@ function clean() {
     }
 }
 
+function checkForRow() {
+    for (let i = 0; i < vertSquares - 1; i ++) {
+        let result = map[i].every(function (e) {
+            return e == 2
+        })
+        if (result) {
+            deleteRow(map, i)
+            map.unshift([0,0,0,0,0,0,0,0,0,0])
+        }
+        
+    }
+}
+
+function deleteRow(map, row) {
+    map = map.slice(0)
+    map.splice(row - 1, 1)
+    return map
+}
 
 function draw() {
     
@@ -244,17 +266,20 @@ function draw() {
 }
 
 function findMinIndex(fitnessArray) {
+    let bestRand = []
     let min = fitnessArray[0];
     let minIndex = 0;
 
-    for (let i = 1; i < fitnessArray.length; i++) {
+    for (let i = 0; i < fitnessArray.length; i++) {
         if (fitnessArray[i] < min) {
             minIndex = i;
             min = fitnessArray[i];
         }
+        if (fitnessArray[i] == min) {
+            bestRand.push(i)
+        }
     }
-
-    return minIndex;
+    return bestRand[Math.floor(Math.random() * bestRand.length)];
 }
 
 function freeze() {
