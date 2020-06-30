@@ -1,3 +1,5 @@
+
+  
 //for refrence this is what the map looks like 
 // 0: (10) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 // 1: (10) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -67,6 +69,17 @@ let ended = false
 let collision = false
 let timeInterval = 20
 
+function omegaReset() {
+    ended = false
+    collision = false
+    blockInMotion = false
+    fitnessArray = []
+    blockInMotion = false
+    collision = false
+    hasHitOne = false
+    hasHitZero = false
+}
+
 draw()
 
 //---------------------------------------------------------------------------------------------------------------------------------------
@@ -74,6 +87,7 @@ draw()
 window.onload = async function() {
     this.console.log(map)
     while(true) {
+        omegaReset()
         let block = randomBlock()
         let fitnessArray = []
 
@@ -101,7 +115,9 @@ window.onload = async function() {
             }
         }
         
-        let bestPos = findMinIndex(fitnessArray)
+        bestPos = findMinIndex(fitnessArray)
+        console.log(fitnessArray)
+        console.log(`BEST POS IS ${bestPos}`)
 
         createBlock(bestPos, block)
         
@@ -275,8 +291,11 @@ function findMinIndex(fitnessArray) {
             minIndex = i;
             min = fitnessArray[i];
         }
+    }
+    
+    for (let i = 0; i < fitnessArray.length; i++) {
         if (fitnessArray[i] == min) {
-            bestRand.push(i)
+                bestRand.push(i)
         }
     }
     return bestRand[Math.floor(Math.random() * bestRand.length)];
@@ -417,4 +436,3 @@ function checkForEnd() {
         ended = false
     }
 }
-
