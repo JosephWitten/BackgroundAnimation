@@ -1,5 +1,3 @@
-
-  
 //for refrence this is what the map looks like 
 // 0: (10) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 // 1: (10) [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -29,7 +27,7 @@ const canvas = document.getElementById("background");
 const ctx = canvas.getContext("2d");
 const horizSquares = 10
 const vertSquares = 20
-const blockArray = ["longBlock", "angleBlock", "cubeBlock", "tBlock", "zBlock"]
+const blockArray = ["longBlock", "angleBlock", "cubeBlock", "tBlock", "zBlock",]
 
     
 let width = canvas.clientWidth;
@@ -46,7 +44,7 @@ for (let i = 0; i < vertSquares; i++) {
         }
     }
 }
-
+let mapCleanCopy = map
 
 let blockInMotion = false
 
@@ -67,7 +65,8 @@ canvas.height = height
 
 let ended = false
 let collision = false
-let timeInterval = 20
+let timeInterval = 10
+let mapState = map
 
 function omegaReset() {
     ended = false
@@ -92,11 +91,14 @@ window.onload = async function() {
         let fitnessArray = []
 
         if (!blockInMotion) {
+            mapState = map
             for (let i = 0; i < horizSquares; i++) {
+                if (block == "angleBlockReverse" && i == 0) {
+                    i = 1
+                }
                 badBlock = createBlock(i, block)
                 if (badBlock) {
                     blockInMotion = true
-                    i = 0;
                     break
                 }
                 
@@ -115,9 +117,24 @@ window.onload = async function() {
             }
         }
         
-        bestPos = findMinIndex(fitnessArray)
-        console.log(fitnessArray)
-        console.log(`BEST POS IS ${bestPos}`)
+        bestRand = findMinIndex(fitnessArray)
+        console.log(bestRand)
+        if (bestRand.length > 1 && block == "longBlock") {
+            bestPos = getLowest(bestRand)
+        } else {
+            bestPos = bestRand[0]
+        }
+        
+        for (let i = 0; i < 4; i++) {
+                if (map[i].includes(2)) {
+                    bestPos = emergency()
+                    break
+                }
+        }
+
+        if (block == "angleBlockReverse" && bestPos == 0) {
+            bestPos = 1
+        }
 
         createBlock(bestPos, block)
         
@@ -131,9 +148,14 @@ window.onload = async function() {
                 blockInMotion = false
             }
         }
+        checkForEnd()
+        if(ended) {
+          break
+        }
         checkForRow()
-
+        
     }
+    draw()
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------
@@ -183,7 +205,25 @@ function countHoles() {
     return holes
 }
 
+function emergency() {
+    depthArray = []
+    for (let i = 0; i < horizSquares; i ++) {
+        let depth = 0
+        for (let j = 0; j < vertSquares; j++) {
+            if (map[j][i] == 0) {
+                depth += 1
+            } else {
+                depthArray.push(depth)
+                break
+            }
+        }
+    }
+    let max = depthArray.indexOf(Math.max.apply(null, depthArray))
+    return max
+}
+
 function fallByOne() {
+    mapState = map
     PosArray = []
     //add current blocks pos to array and clear falling blocks
     for (let i = 0; i < vertSquares; i++) {
@@ -209,9 +249,11 @@ function fallByOne() {
         }
     }
 
+    
     //clean map
     if (!collision) {
         clean()
+        map = mapState
     }
 
     if (!collision) {
@@ -285,6 +327,7 @@ function findMinIndex(fitnessArray) {
     let bestRand = []
     let min = fitnessArray[0];
     let minIndex = 0;
+    let best = 0
 
     for (let i = 0; i < fitnessArray.length; i++) {
         if (fitnessArray[i] < min) {
@@ -296,9 +339,10 @@ function findMinIndex(fitnessArray) {
     for (let i = 0; i < fitnessArray.length; i++) {
         if (fitnessArray[i] == min) {
                 bestRand.push(i)
+            }
         }
-    }
-    return bestRand[Math.floor(Math.random() * bestRand.length)];
+    return bestRand    
+
 }
 
 function freeze() {
@@ -311,6 +355,34 @@ function freeze() {
     }
 }
 
+//Example param [0, 2, 5, 6, 7]
+function getLowest(bestRand) {
+    let nextStage = []
+    let lastStage = []
+    for (let i = 0; i < bestRand.length; i++) {
+        depth = 0
+        for (let j = 0; j < vertSquares; j++) {
+            if (map[j][i] == 0) {
+                depth += 1
+            } else {
+                nextStage.push(depth)
+                break
+            }
+        }
+    }
+
+    max = Math.max.apply(null, nextStage)
+    // console.log(`NEXT STAGE ${nextStage}`)
+    for (let i = 0; i < nextStage.length; i++) {
+        if (nextStage[i] == max) {
+            lastStage.push(i)
+        }
+    }
+    randomFromLast = lastStage[Math.floor(Math.random() * lastStage.length)]
+    // console.log(`LAST STAGE ${lastStage}`)
+    // console.log(`RANDOM FROM LAST ${randomFromLast}`)
+    return randomFromLast
+}
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -337,8 +409,10 @@ function randomBlock() {
 
 function createBlock(givenStartPos, givenBlock) {
     
+
     let startPos = givenStartPos
     let newBlock = givenBlock
+    
     switch (newBlock) {
     
 
@@ -393,6 +467,8 @@ function createBlock(givenStartPos, givenBlock) {
         }
         break
 
+   
+
     case ("zBlock"):
         if ((startPos + 1) >= horizSquares) {
             blockInMotion = false
@@ -421,7 +497,7 @@ function createBlock(givenStartPos, givenBlock) {
 
 function checkForEnd() {
     for (let i = 0; i < horizSquares; i++) {
-        if (map[i][0] == 2) {
+        if (map[0][i] == 2) {
             temp = true
             break
         }
